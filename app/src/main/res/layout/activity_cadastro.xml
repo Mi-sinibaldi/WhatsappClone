@@ -47,7 +47,7 @@
         app:layout_constraintTop_toBottomOf="@+id/textInputLayout">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editTextEmail"
+            android:id="@+id/editTextLoginEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Digite o seu e-mail"
@@ -66,7 +66,7 @@
         app:layout_constraintTop_toBottomOf="@+id/textInputLayout3">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editTextSenha"
+            android:id="@+id/editTextLoginSenha"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Digite a sua senha"

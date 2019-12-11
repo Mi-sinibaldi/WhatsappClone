@@ -16,7 +16,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthActionCodeException;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException;
@@ -108,8 +107,8 @@ public class CadastroActivity extends AppCompatActivity {
 
     private void loadUi() {
         editTextNome = findViewById(R.id.editTextNome);
-        editTextEmail = findViewById(R.id.editTextEmail);
-        editTextSenha = findViewById(R.id.editTextSenha);
+        editTextEmail = findViewById(R.id.editTextLoginEmail);
+        editTextSenha = findViewById(R.id.editTextLoginSenha);
         buttonCadastrar = findViewById(R.id.buttonCadastrar);
     }
 }
