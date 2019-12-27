@@ -11,6 +11,7 @@ import android.widget.Toast;
 
 import com.example.whatsappclone.R;
 import com.example.whatsappclone.config.ConfiguracaoFirebase;
+import com.example.whatsappclone.helper.Base64Custom;
 import com.example.whatsappclone.model.Usuario;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -37,38 +38,48 @@ public class CadastroActivity extends AppCompatActivity {
 
     }
 
-    public void CadastrarUsuario(Usuario usuario) {
+    public void CadastrarUsuario(final Usuario usuario) {
         autenticacao = ConfiguracaoFirebase.getFirebaseAutenticacao();
         autenticacao.createUserWithEmailAndPassword(usuario.getEmail(), usuario.getSenha())
                 .addOnCompleteListener(this,
-                new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
+                        new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                if (task.isSuccessful()) {
+                                    Toast.makeText(CadastroActivity.this,
+                                            "Sucesso ao cadastrar usuário!", Toast.LENGTH_SHORT).show();
+                                    finish();
 
-                        if (task.isSuccessful()) {
-                            Toast.makeText(CadastroActivity.this,
-                                    "Sucesso ao cadastrar usuário!", Toast.LENGTH_SHORT).show();
-                            finish();
-                        } else {
-                            String excecao = "";
-                            try {
-                                throw task.getException();
-                            } catch (FirebaseAuthWeakPasswordException e) {
-                                excecao = "Digite uma senha mais forte!";
-                            } catch (FirebaseAuthInvalidCredentialsException e) {
-                                excecao = "Por favor digite um e-mail válido!";
-                            } catch (FirebaseAuthUserCollisionException e) {
-                                excecao = "Essa conta ja foi castrada!";
-                            } catch (Exception e) {
-                                excecao = "Erro ao cadastrar usuário: " + e.getMessage();
-                                e.printStackTrace();
+                                    try {
+                                        //salvar os dados dentro do Firebase
+                                        String idUsuario = Base64Custom.codificarBase64(usuario.getEmail());
+                                        usuario.setId(idUsuario);
+                                        usuario.salvar();
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+
+                                } else {
+                                    String excecao = "";
+                                    try {
+                                        throw task.getException();
+                                    } catch (FirebaseAuthWeakPasswordException e) {
+                                        excecao = "Digite uma senha mais forte!";
+                                    } catch (FirebaseAuthInvalidCredentialsException e) {
+                                        excecao = "Por favor digite um e-mail válido!";
+                                    } catch (FirebaseAuthUserCollisionException e) {
+                                        excecao = "Essa conta ja foi castrada!";
+                                    } catch (Exception e) {
+                                        excecao = "Erro ao cadastrar usuário: " + e.getMessage();
+                                        e.printStackTrace();
+                                    }
+
+                                    Toast.makeText(CadastroActivity.this,
+                                            excecao, Toast.LENGTH_SHORT).show();
+                                }
                             }
-
-                            Toast.makeText(CadastroActivity.this,
-                                    excecao, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+                        });
     }
 
     public void validarCadastroUsuario() {
@@ -83,7 +94,7 @@ public class CadastroActivity extends AppCompatActivity {
                 //valido se os campos foram digitados
                 if (!textoNome.isEmpty()) {
                     if (!textoEmail.isEmpty()) {
-                        if(!textoSenha.isEmpty()){
+                        if (!textoSenha.isEmpty()) {
 
                             Usuario usuario = new Usuario();
                             usuario.setNome(textoNome);
