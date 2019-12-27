@@ -27,12 +27,15 @@ public class LoginActivity extends AppCompatActivity {
     private TextView textViewCadastrar;
     private EditText editTextLoginEmail, editTextLoginSenha;
     private Button buttonLogar;
+
     private FirebaseAuth autenticacao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        autenticacao = ConfiguracaoFirebase.getFirebaseAutenticacao();
 
         loadUi();
 
@@ -103,6 +106,15 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        FirebaseUser usuarioAtual = autenticacao.getCurrentUser();
+        if ( usuarioAtual != null ){
+            abrirTelaPrincipal();
+        }
+    }
+
     public void abrirTelaCadastro() {
         textViewCadastrar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -116,15 +128,6 @@ public class LoginActivity extends AppCompatActivity {
     public void abrirTelaPrincipal() {
         Intent intent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(intent);
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-//        FirebaseUser usuarioAtual = autenticacao.getCurrentUser();
-//        if(usuarioAtual != null){
-//            abrirTelaPrincipal();
-//        }
     }
 
     private void loadUi() {

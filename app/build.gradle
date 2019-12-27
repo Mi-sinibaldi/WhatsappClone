@@ -31,12 +31,17 @@ dependencies {
     implementation 'com.google.firebase:firebase-database:18.0.0'
     implementation 'com.google.firebase:firebase-storage:18.0.0'
     implementation 'com.google.firebase:firebase-auth:18.0.0'
+
     implementation 'com.google.android.material:material:1.0.0'
 
+    /*Dependencia uso de abas*/
     implementation 'com.ogaclejapan.smarttablayout:library:1.7.0@aar'
     implementation 'com.ogaclejapan.smarttablayout:utils-v4:1.7.0@aar'
 
+    /*Dependencia para arredondamento de imagem*/
     implementation 'de.hdodenhof:circleimageview:3.0.1'
+
+    implementation 'com.android.support:design:28.1.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

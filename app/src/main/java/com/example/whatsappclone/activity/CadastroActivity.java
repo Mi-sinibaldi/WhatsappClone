@@ -51,12 +51,12 @@ public class CadastroActivity extends AppCompatActivity {
                                     finish();
 
                                     try {
-                                        //salvar os dados dentro do Firebase
-                                        String idUsuario = Base64Custom.codificarBase64(usuario.getEmail());
-                                        usuario.setId(idUsuario);
+
+                                        String identificadorUsuario = Base64Custom.codificarBase64( usuario.getEmail() );
+                                        usuario.setId( identificadorUsuario );
                                         usuario.salvar();
 
-                                    } catch (Exception e) {
+                                    }catch (Exception e){
                                         e.printStackTrace();
                                     }
 

@@ -14,11 +14,13 @@ public class Usuario {
     public Usuario() {
     }
 
-    public void salvar() {
-        DatabaseReference firebaseRef = ConfiguracaoFirebase.getFirebaseDataBase();
-        DatabaseReference usuario = firebaseRef.child("usuarios").child(getId());
+    public void salvar(){
 
-        usuario.setValue(this);
+        DatabaseReference firebaseRef = ConfiguracaoFirebase.getFirebaseDatabase();
+        DatabaseReference usuario = firebaseRef.child("usuarios").child( getId() );
+
+        usuario.setValue( this );
+
     }
 
     public String getNome() {
