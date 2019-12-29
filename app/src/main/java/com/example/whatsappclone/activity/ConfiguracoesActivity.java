@@ -13,6 +13,7 @@ import android.os.Bundle;
 import com.example.whatsappclone.R;
 import com.example.whatsappclone.helper.Permissao;
 
+
 public class ConfiguracoesActivity extends AppCompatActivity {
 
     private String[] permissoesNecessarias = new String[]{
