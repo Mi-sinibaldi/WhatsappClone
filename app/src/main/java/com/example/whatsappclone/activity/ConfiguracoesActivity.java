@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
@@ -18,12 +19,17 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.bumptech.glide.Glide;
 import com.example.whatsappclone.R;
 import com.example.whatsappclone.config.ConfiguracaoFirebase;
 import com.example.whatsappclone.helper.Permissao;
 import com.example.whatsappclone.helper.UsuarioFirebase;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
@@ -41,6 +47,7 @@ public class ConfiguracoesActivity extends AppCompatActivity {
 
     private ImageButton imageButtonCamera, imageButtonGaleria;
     private CircleImageView circleImageViewFotoPerfil;
+    private EditText editTextNameUserPerf;
 
     private static final int SELECAO_CAMERA = 100;
     private static final int SELECAO_GALERIA = 200;
@@ -67,6 +74,20 @@ public class ConfiguracoesActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        //recupera os dados do usuario
+        FirebaseUser usuario = UsuarioFirebase.getUsuarioAtual();
+        Uri url = usuario.getPhotoUrl();
+
+        if (url != null) {
+            Glide.with(ConfiguracoesActivity.this)
+                    .load(url)
+                    .into(circleImageViewFotoPerfil);
+        } else {
+            circleImageViewFotoPerfil.setImageResource(R.drawable.padrao);
+        }
+
+        editTextNameUserPerf.setText(usuario.getDisplayName());
 
         OpenCamera();
         OpenGalery();
@@ -102,25 +123,31 @@ public class ConfiguracoesActivity extends AppCompatActivity {
                     image.compress(Bitmap.CompressFormat.JPEG, 70, baos);
                     byte[] dadosImage = baos.toByteArray();
 
-                    //salvar aq imagem escolhida no firebase
-                    StorageReference imagemRef = storageReference
+                    //salvar a imagem escolhida no firebase
+                    final StorageReference imagemRef = storageReference
                             .child("imagens")
                             .child("perfil")
-                            .child(identificadorUsuario)
-                            .child("perfil.jpeg");
+                            //.child(identificadorUsuario)
+                            .child(identificadorUsuario + ".jpeg");
 
-                    UploadTask uploadTask = imagemRef.putBytes(dadosImage);
-                    uploadTask.addOnFailureListener(new OnFailureListener() {
+
+                    imagemRef.putBytes(dadosImage).continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
                         @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Toast.makeText(ConfiguracoesActivity.this,
-                                    "Erro ao fazer upload da imagem", Toast.LENGTH_SHORT).show();
+                        public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                            if (!task.isSuccessful()) {
+                                throw task.getException();
+                            }
+                            return imagemRef.getDownloadUrl();
                         }
-                    }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    }).addOnCompleteListener(new OnCompleteListener<Uri>() {
                         @Override
-                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                            Toast.makeText(ConfiguracoesActivity.this,
-                                    "Sucesso ao fazer upload da imagem", Toast.LENGTH_SHORT).show();
+                        public void onComplete(@NonNull Task<Uri> task) {
+                            if (task.isSuccessful()) {
+                                Uri downloadUri = task.getResult();
+                                atualizarFotoUsuario(downloadUri);
+                            } else {
+                                Toast.makeText(ConfiguracoesActivity.this, "upload failed: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
                 }
@@ -129,6 +156,10 @@ public class ConfiguracoesActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+    }
+
+    public void atualizarFotoUsuario(Uri url) {
+        UsuarioFirebase.atualizarFotoUsuario(url);
     }
 
     @Override
@@ -189,6 +220,6 @@ public class ConfiguracoesActivity extends AppCompatActivity {
         imageButtonCamera = findViewById(R.id.imageButtonCamera);
         imageButtonGaleria = findViewById(R.id.imageButtonGaleria);
         circleImageViewFotoPerfil = findViewById(R.id.circleImageViewFotoPerfil);
+        editTextNameUserPerf = findViewById(R.id.editTextNameUserPerfil);
     }
-
 }
