@@ -11,6 +11,7 @@ import android.provider.MediaStore;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -24,10 +25,9 @@ import com.example.whatsappclone.R;
 import com.example.whatsappclone.config.ConfiguracaoFirebase;
 import com.example.whatsappclone.helper.Permissao;
 import com.example.whatsappclone.helper.UsuarioFirebase;
+import com.example.whatsappclone.model.Usuario;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.storage.StorageReference;
@@ -46,6 +46,7 @@ public class ConfiguracoesActivity extends AppCompatActivity {
     };
 
     private ImageButton imageButtonCamera, imageButtonGaleria;
+    private ImageView imageAtualizarNome;
     private CircleImageView circleImageViewFotoPerfil;
     private EditText editTextNameUserPerf;
 
@@ -55,6 +56,8 @@ public class ConfiguracoesActivity extends AppCompatActivity {
     private StorageReference storageReference;
     private String identificadorUsuario;
 
+    private Usuario usuarioLogado;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -62,9 +65,10 @@ public class ConfiguracoesActivity extends AppCompatActivity {
 
         loadUi();
 
-        //configurações iniciais
+        //Configurações iniciais
         storageReference = ConfiguracaoFirebase.getFirebaseStorage();
         identificadorUsuario = UsuarioFirebase.getIdentificadorUsuario();
+        usuarioLogado = UsuarioFirebase.getDadosUsuarioLogado();
 
         //validar as permissões
         Permissao.validarPermissoes(permissoesNecessarias, this, 1);
@@ -89,8 +93,9 @@ public class ConfiguracoesActivity extends AppCompatActivity {
 
         editTextNameUserPerf.setText(usuario.getDisplayName());
 
-        OpenCamera();
-        OpenGalery();
+        openCamera();
+        openGalery();
+        atualizarNome();
 
     }
 
@@ -159,7 +164,14 @@ public class ConfiguracoesActivity extends AppCompatActivity {
     }
 
     public void atualizarFotoUsuario(Uri url) {
-        UsuarioFirebase.atualizarFotoUsuario(url);
+        boolean retorno = UsuarioFirebase.atualizarFotoUsuario(url);
+        if (retorno) {
+            usuarioLogado.setFoto(url.toString());
+            usuarioLogado.atualizar();
+
+            Toast.makeText(ConfiguracoesActivity.this,
+                    "Sua foto foi alterada!", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -189,7 +201,7 @@ public class ConfiguracoesActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    private void OpenCamera() {
+    private void openCamera() {
         imageButtonCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -202,7 +214,7 @@ public class ConfiguracoesActivity extends AppCompatActivity {
         });
     }
 
-    private void OpenGalery() {
+    private void openGalery() {
         imageButtonGaleria.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -215,11 +227,30 @@ public class ConfiguracoesActivity extends AppCompatActivity {
         });
     }
 
+    private void atualizarNome() {
+        imageAtualizarNome.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String nome = editTextNameUserPerf.getText().toString();
+                boolean retorno = UsuarioFirebase.atualizarNomeUsuario(nome);
+                if (retorno) {
+
+                    usuarioLogado.setNome(nome);
+                    usuarioLogado.atualizar();
+
+                    Toast.makeText(ConfiguracoesActivity.this,
+                            "Nome alterado com sucesso!",
+                            Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
 
     private void loadUi() {
         imageButtonCamera = findViewById(R.id.imageButtonCamera);
         imageButtonGaleria = findViewById(R.id.imageButtonGaleria);
         circleImageViewFotoPerfil = findViewById(R.id.circleImageViewFotoPerfil);
         editTextNameUserPerf = findViewById(R.id.editTextNameUserPerfil);
+        imageAtualizarNome = findViewById(R.id.imageAtualizarNome);
     }
 }
