@@ -3,22 +3,34 @@ package com.example.whatsappclone.activity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Adapter;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.whatsappclone.R;
+import com.example.whatsappclone.adapter.MensagensAdapter;
 import com.example.whatsappclone.config.ConfiguracaoFirebase;
 import com.example.whatsappclone.helper.Base64Custom;
 import com.example.whatsappclone.helper.UsuarioFirebase;
 import com.example.whatsappclone.model.Mensagem;
 import com.example.whatsappclone.model.Usuario;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -29,9 +41,17 @@ public class ChatActivity extends AppCompatActivity {
     private FloatingActionButton fabEnviarChat;
     private EditText editTextMensagemChat;
 
+    private RecyclerView recyclerMensagensChat;
+    private MensagensAdapter adapter;
+    private List<Mensagem> mensagens = new ArrayList<>();
+
     private Usuario usuarioDestinatario;
     private String idUsuarioRemetente;
     private String idUsuarioDestinatario;
+
+    private DatabaseReference databaseReference;
+    private DatabaseReference mensagensRef;
+    private ChildEventListener childEventListenerMensagens;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +92,16 @@ public class ChatActivity extends AppCompatActivity {
 
             recupedaDadosDestinatario();
         }
+
+        configAdapter();
+        configRecyclerView();
+
+        databaseReference = ConfiguracaoFirebase.getFirebaseDatabase();
+
+        mensagensRef = databaseReference.child("mensagens")
+                .child(idUsuarioRemetente)
+                .child(idUsuarioDestinatario);
+
     }
 
     private void enviarMensagem() {
@@ -113,11 +143,68 @@ public class ChatActivity extends AppCompatActivity {
         idUsuarioDestinatario = Base64Custom.codificarBase64(usuarioDestinatario.getEmail());
     }
 
+    private void configRecyclerView() {
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
+        recyclerMensagensChat.setLayoutManager(layoutManager);
+        recyclerMensagensChat.setHasFixedSize(true);
+        recyclerMensagensChat.setAdapter(adapter);
+    }
+
+    private void configAdapter() {
+
+        adapter = new MensagensAdapter(mensagens, getBaseContext());
+
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        recuperarMensagem();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mensagensRef.removeEventListener(childEventListenerMensagens);
+    }
+
+    private void recuperarMensagem() {
+        childEventListenerMensagens = mensagensRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+                Mensagem mensagem = dataSnapshot.getValue(Mensagem.class);
+                mensagens.add(mensagem);
+                adapter.notifyDataSetChanged();
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+    }
+
     private void loadUi() {
         textViewNomeChat = findViewById(R.id.textViewNomeChat);
         circleImageFotoChat = findViewById(R.id.circleImageFotoChat);
         editTextMensagemChat = findViewById(R.id.editTextMensagemChat);
         fabEnviarChat = findViewById(R.id.fabEnviarChat);
+        recyclerMensagensChat = findViewById(R.id.recyclerMensagensChat);
 
     }
 
